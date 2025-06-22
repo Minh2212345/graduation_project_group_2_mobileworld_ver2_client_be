@@ -40,4 +40,7 @@ public class SanPhamService {
         return sanPhamRepository.suggestProductTop6();
     }
 
+    public Page<Object[]> showAllProduct(Pageable pageable,  String sortBy,String useCases, String colors, String brands, double minPrice, double maxPrice) {
+        return sanPhamRepository.showAllProduct(pageable, sortBy,useCases, colors, brands, minPrice, maxPrice);
+    }
 }

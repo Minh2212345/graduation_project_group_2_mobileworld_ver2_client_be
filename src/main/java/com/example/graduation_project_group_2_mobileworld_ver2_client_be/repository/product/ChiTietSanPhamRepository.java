@@ -76,4 +76,13 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
         AND sp.deleted = 0
     """, nativeQuery = true)
     List<Object[]> findChiTietSanPhamBySanPhamId(@Param("sanPhamId") Integer sanPhamId);
+
+    @Query("SELECT MIN(ctsp.giaBan) FROM ChiTietSanPham ctsp WHERE ctsp.deleted = false")
+    Double findMinPrice();
+
+    @Query("SELECT MAX(ctsp.giaBan) FROM ChiTietSanPham ctsp WHERE ctsp.deleted = false")
+    Double findMaxPrice();
+
+    @Query("SELECT DISTINCT ctsp.idMauSac.mauSac FROM ChiTietSanPham ctsp WHERE ctsp.deleted = false")
+    List<String> findDistinctColors();
 }

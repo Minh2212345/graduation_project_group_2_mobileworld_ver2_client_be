@@ -39,22 +39,22 @@ public class ProductController {
         List<Object[]> results = chiTietSanPhamRepository.findChiTietSanPhamBySanPhamId(sanPhamId);
         return results.stream().map(record -> {
             Map<String, Object> variant = new HashMap<>();
-            variant.put("sp_id", record[0]); // sp.id
-            variant.put("ten_san_pham", record[1]); // sp.ten_san_pham
-            variant.put("sp_ma", record[2]); // sp.ma
-            variant.put("sp_created_at", record[3]); // sp.created_at
-            variant.put("nha_san_xuat", record[4]); // nsx.ten_nha_san_xuat
-            variant.put("ten_cpu", record[5]); // cpu.ten_cpu
-            variant.put("ten_gpu", record[6]); // gpu.ten_gpu
-            variant.put("thong_so_camera_sau", record[7]); // cc.thong_so_camera_sau
-            variant.put("thong_so_camera_truoc", record[8]); // cc.thong_so_camera_truoc
-            variant.put("ctsp_id", record[9]); // ctsp.id
-            variant.put("gia_ban", record[10] != null ? record[10] : 0); // ctsp.gia_ban
-            variant.put("ctsp_ma", record[11]); // ctsp.ma
-            variant.put("id_imel", record[12]); // ctsp.id_imel
-            variant.put("mau_sac", record[13]); // ms.ten_mau_sac
-            variant.put("ram_dung_luong", record[14]); // ram.dung_luong
-            variant.put("bo_nho_trong_dung_luong", record[15]); // bnt.dung_luong
+            variant.put("sp_id", record[0]);
+            variant.put("ten_san_pham", record[1]);
+            variant.put("sp_ma", record[2]);
+            variant.put("sp_created_at", record[3]);
+            variant.put("nha_san_xuat", record[4]);
+            variant.put("ten_cpu", record[5]);
+            variant.put("ten_gpu", record[6]);
+            variant.put("thong_so_camera_sau", record[7]);
+            variant.put("thong_so_camera_truoc", record[8]);
+            variant.put("ctsp_id", record[9]);
+            variant.put("gia_ban", record[10] != null ? record[10] : 0);
+            variant.put("ctsp_ma", record[11]);
+            variant.put("id_imel", record[12]);
+            variant.put("mau_sac", record[13]);
+            variant.put("ram_dung_luong", record[14]);
+            variant.put("bo_nho_trong_dung_luong", record[15]);
             variant.put("anh_san_pham_url", record[16] != null ? record[16] : "/assets/images/placeholder.jpg"); // asp.duong_dan
             variant.put("ghi_chu", record[17] != null ? record[17] : "Không có mô tả chi tiết.");
             return variant;
@@ -127,19 +127,25 @@ public class ProductController {
     @GetMapping("/products")
     public Map<String, Object> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "popularity") String sortBy,
+            @RequestParam(defaultValue = "") String useCases,
+            @RequestParam(defaultValue = "") String colors,
+            @RequestParam(defaultValue = "") String brands,
+            @RequestParam(defaultValue = "0") double minPrice,
+            @RequestParam(defaultValue = "0") double maxPrice) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Object[]> productPage = sanPhamService.showAllProduct(pageable);
+        Page<Object[]> productPage = sanPhamService.showAllProduct(pageable, sortBy,useCases, colors, brands, minPrice, maxPrice);
 
         List<Map<String, Object>> products = productPage.getContent().stream().map(record -> {
             Map<String, Object> product = new HashMap<>();
-            product.put("id", record[0]); // sp.id
-            product.put("tenSanPham", record[1]); // sp.ten_san_pham
-            product.put("createdAt", record[2]); // sp.created_at
-            product.put("tenNhaSanXuat", record[3]); // nsx.id
-            product.put("giaBan", record[4] != null ? record[4] : 0); // ctsp.gia_ban
-            product.put("imageUrl", record[5]); // asp.duong_dan
-            product.put("mauSacList", record[6] != null ? Arrays.asList(((String) record[6]).split(",")) : Collections.emptyList()); // ms.mau_sac_list
+            product.put("id", record[0]);
+            product.put("tenSanPham", record[1]);
+            product.put("createdAt", record[2]);
+            product.put("tenNhaSanXuat", record[3]);
+            product.put("giaBan", record[4] != null ? record[4] : 0);
+            product.put("imageUrl", record[5] != null ? record[5] : "/assets/images/placeholder.jpg");
+            product.put("mauSacList", record[6] != null ? Arrays.asList(((String) record[6]).split(",")) : Collections.emptyList());
             return product;
         }).collect(Collectors.toList());
 
@@ -149,6 +155,26 @@ public class ProductController {
         response.put("totalItems", productPage.getTotalElements());
         response.put("totalPages", productPage.getTotalPages());
 
+        return response;
+    }
+
+    @GetMapping("/price-range")
+    public Map<String, Object> getPriceRange() {
+        Map<String, Object> response = new HashMap<>();
+        Double minPrice = chiTietSanPhamRepository.findMinPrice();
+        Double maxPrice = chiTietSanPhamRepository.findMaxPrice();
+        response.put("minPrice", minPrice != null ? minPrice : 0);
+        response.put("maxPrice", maxPrice != null ? maxPrice : 0);
+        return response;
+    }
+
+
+
+    @GetMapping("/colors")
+    public Map<String, Object> getColors() {
+        List<String> colors = chiTietSanPhamRepository.findDistinctColors();
+        Map<String, Object> response = new HashMap<>();
+        response.put("colors", colors);
         return response;
     }
 }
