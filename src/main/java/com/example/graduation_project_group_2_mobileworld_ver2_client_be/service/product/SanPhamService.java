@@ -20,8 +20,8 @@ public class SanPhamService {
         this.sanPhamRepository = sanPhamRepository;
     }
 
-    public List<Object[]> findProductsWithLatestVariant() {
-        return sanPhamRepository.findProductsWithLatestVariant();
+    public List<Object[]> findProductsWithLatestVariant(@Param("idNhaSanXuat") Integer idNhaSanXuat) {
+        return sanPhamRepository.findProductsWithLatestVariant(idNhaSanXuat);
     }
 
     public List<Object[]> showNewProduct(@Param("idNhaSanXuat") Integer idNhaSanXuat) {

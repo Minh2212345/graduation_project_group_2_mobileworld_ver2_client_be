@@ -79,16 +79,21 @@ public class ProductController {
 
     // Get product variants
     @GetMapping("/san-pham-with-variants")
-    public List<Map<String, Object>> getProductsWithLatestVariant() {
-        List<Object[]> results = sanPhamService.findProductsWithLatestVariant();
+    public List<Map<String, Object>> getProductsWithLatestVariant(@RequestParam(required = false) Integer idNhaSanXuat) {
+        List<Object[]> results = sanPhamService.findProductsWithLatestVariant(idNhaSanXuat);
         return results.stream().map(record -> {
             Map<String, Object> product = new HashMap<>();
             product.put("id", record[0]); // sp.id
             product.put("tenSanPham", record[1]); // sp.ten_san_pham
             product.put("createdAt", record[2]); // sp.created_at
-            product.put("tenNhaSanXuat", record[3]); // nsx.id (ID nhà sản xuất)
+            product.put("tenNhaSanXuat", record[3]); // nsx.id
             product.put("giaBan", record[4] != null ? record[4] : 0); // ctsp.gia_ban
-            product.put("imageUrl", record[5] != null ? record[5] : "/assets/images/placeholder.jpg"); // asp.duong_dan
+            product.put("giaSauKhiGiam", record[5] != null ? record[5] : record[4] != null ? record[4] : 0); // giaSauKhiGiam
+            product.put("hasDiscount", record[7] != null && ((Number) record[7]).intValue() == 1); // hasDiscount
+            product.put("imageUrl", record[6] != null ? record[6] : "/assets/images/placeholder.jpg"); // asp.duong_dan
+            product.put("giamPhanTram", record[8] != null ? record[8] : 0); // gia_tri_giam_gia
+            product.put("giamToiDa", record[9] != null ? record[9] : 0); // so_tien_giam_toi_da
+            product.put("loaiGiamGiaApDung", record[10] != null ? record[10] : "NONE"); // loai_giam_gia_ap_dung
             return product;
         }).collect(Collectors.toList());
     }
@@ -116,13 +121,17 @@ public class ProductController {
             product.put("id", record[0]); // sp.id
             product.put("tenSanPham", record[1]); // sp.ten_san_pham
             product.put("createdAt", record[2]); // sp.created_at
-            product.put("tenNhaSanXuat", record[3]); // nsx.id (ID nhà sản xuất)
-            product.put("giaBan", record[4] != null ? record[4] : 0); // ctsp.gia_ban or ctdgg.gia_sau_khi_giam
-            product.put("imageUrl", record[5] != null ? record[5] : "/assets/images/placeholder.jpg"); // asp.duong_dan
+            product.put("tenNhaSanXuat", record[3]); // nsx.id
+            product.put("giaBan", record[4] != null ? record[4] : 0); // ctsp.gia_ban
+            product.put("giaSauKhiGiam", record[5] != null ? record[5] : record[4] != null ? record[4] : 0); // giaSauKhiGiam
+            product.put("imageUrl", record[6] != null ? record[6] : "/assets/images/placeholder.jpg"); // asp.duong_dan
+            product.put("hasDiscount", record[7] != null && ((Number) record[7]).intValue() == 1); // hasDiscount
+            product.put("giamPhanTram", record[8] != null ? record[8] : 0); // gia_tri_giam_gia
+            product.put("giamToiDa", record[9] != null ? record[9] : 0); // so_tien_giam_toi_da
+            product.put("loaiGiamGiaApDung", record[10] != null ? record[10] : "NONE"); // loai_giam_gia_ap_dung
             return product;
         }).collect(Collectors.toList());
     }
-
     // Get all products with pagination
     @GetMapping("/products")
     public Map<String, Object> getAllProducts(
@@ -167,8 +176,6 @@ public class ProductController {
         response.put("maxPrice", maxPrice != null ? maxPrice : 0);
         return response;
     }
-
-
 
     @GetMapping("/colors")
     public Map<String, Object> getColors() {

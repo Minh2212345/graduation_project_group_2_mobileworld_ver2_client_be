@@ -12,30 +12,40 @@ import java.util.Optional;
 
 public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     @Query(value = """
-    SELECT TOP 10
+    SELECT TOP 20
         sp.id AS id,
         sp.ten_san_pham AS tenSanPham,
         sp.created_at AS createdAt,
         nsx.id AS tenNhaSanXuat,
         ctsp.gia_ban AS giaBan,
-        COALESCE(asp.duong_dan, '/assets/images/placeholder.jpg') AS imageUrl
+        COALESCE(ctdgg.gia_sau_khi_giam, ctsp.gia_ban) AS giaSauKhiGiam,
+        COALESCE(asp.duong_dan, '/assets/images/placeholder.jpg') AS imageUrl,
+        CASE WHEN ctdgg.id IS NOT NULL THEN 1 ELSE 0 END AS hasDiscount,
+        dgg.gia_tri_giam_gia AS giamPhanTram,
+        dgg.so_tien_giam_toi_da AS giamToiDa,
+        COALESCE(dgg.loai_giam_gia_ap_dung, 'NONE') AS loaiGiamGiaApDung
     FROM 
         san_pham sp
     LEFT JOIN nha_san_xuat nsx ON sp.id_nha_san_xuat = nsx.id
     OUTER APPLY (
-        SELECT TOP 1 ct.gia_ban, ct.id_anh_san_pham
+        SELECT TOP 1 ct.id, ct.gia_ban, ct.id_anh_san_pham
         FROM chi_tiet_san_pham ct
         WHERE ct.id_san_pham = sp.id AND ct.deleted = 0
         ORDER BY ct.created_at DESC
     ) ctsp
     LEFT JOIN anh_san_pham asp ON ctsp.id_anh_san_pham = asp.id
+    LEFT JOIN chi_tiet_dot_giam_gia ctdgg ON ctdgg.id_chi_tiet_san_pham = ctsp.id AND ctdgg.deleted = 0
+    LEFT JOIN dot_giam_gia dgg ON ctdgg.id_dot_giam_gia = dgg.id
     WHERE EXISTS (
         SELECT 1
         FROM chi_tiet_san_pham ct
         WHERE ct.id_san_pham = sp.id AND ct.deleted = 0
-    ) AND sp.id > 10
+    ) 
+    AND sp.id > 10
+    AND (:idNhaSanXuat IS NULL OR nsx.id = :idNhaSanXuat)
+    ORDER BY sp.created_at DESC
     """, nativeQuery = true)
-    List<Object[]> findProductsWithLatestVariant();
+    List<Object[]> findProductsWithLatestVariant(@Param("idNhaSanXuat") Integer idNhaSanXuat);
 
 
     @Query(value = """
@@ -65,42 +75,48 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     List<Object[]> showNewProduct(@Param("idNhaSanXuat") Integer idNhaSanXuat);
 
     @Query(value = """
-SELECT TOP 5
-    sp.id AS id,
-    sp.ten_san_pham AS tenSanPham,
-    sp.created_at AS createdAt,
-    nsx.id AS tenNhaSanXuat,
-    COALESCE(ctdgg.gia_sau_khi_giam, ctsp.gia_ban) AS giaBan,
-    COALESCE(asp.duong_dan, '/assets/images/placeholder.jpg') AS imageUrl
-FROM 
-    san_pham sp
-LEFT JOIN nha_san_xuat nsx ON sp.id_nha_san_xuat = nsx.id
-OUTER APPLY (
-    SELECT TOP 1 ct.id, ct.gia_ban, ct.id_anh_san_pham
-    FROM chi_tiet_san_pham ct
-    WHERE ct.id_san_pham = sp.id AND ct.deleted = 0
-    ORDER BY ct.created_at DESC
-) ctsp
-LEFT JOIN anh_san_pham asp ON ctsp.id_anh_san_pham = asp.id
-LEFT JOIN chi_tiet_dot_giam_gia ctdgg ON ctdgg.id_chi_tiet_san_pham = ctsp.id AND ctdgg.deleted = 0
-LEFT JOIN (
-    SELECT hdct.id_chi_tiet_san_pham, COUNT(*) AS so_luong_ban
-    FROM hoa_don_chi_tiet hdct
-    JOIN hoa_don hd ON hdct.id_hoa_don = hd.id
-    WHERE hd.trang_thai = 1 AND hd.deleted = 0
-    GROUP BY hdct.id_chi_tiet_san_pham
-) sales ON sales.id_chi_tiet_san_pham = ctsp.id
-WHERE EXISTS (
-    SELECT 1
-    FROM chi_tiet_san_pham ct
-    WHERE ct.id_san_pham = sp.id AND ct.deleted = 0
-)
-ORDER BY 
-    CASE WHEN :sortBy = 'SALES' THEN COALESCE(sales.so_luong_ban, 0) ELSE 0 END DESC,
-    CASE WHEN :sortBy = 'DISCOUNT' THEN CASE WHEN ctdgg.id IS NOT NULL THEN 1 ELSE 0 END ELSE 0 END DESC,
-    CASE WHEN :sortBy NOT IN ('SALES', 'DISCOUNT') THEN sp.created_at END DESC,
-    sp.created_at DESC
-""", nativeQuery = true)
+    SELECT TOP 5
+        sp.id AS id,
+        sp.ten_san_pham AS tenSanPham,
+        sp.created_at AS createdAt,
+        nsx.id AS tenNhaSanXuat,
+        ctsp.gia_ban AS giaBan,
+        COALESCE(ctdgg.gia_sau_khi_giam, ctsp.gia_ban) AS giaSauKhiGiam,
+        COALESCE(asp.duong_dan, '/assets/images/placeholder.jpg') AS imageUrl,
+        CASE WHEN ctdgg.id IS NOT NULL THEN 1 ELSE 0 END AS hasDiscount,
+        dgg.gia_tri_giam_gia AS giamPhanTram,
+        dgg.so_tien_giam_toi_da AS giamToiDa,
+        COALESCE(dgg.loai_giam_gia_ap_dung, 'NONE') AS loaiGiamGiaApDung
+    FROM 
+        san_pham sp
+    LEFT JOIN nha_san_xuat nsx ON sp.id_nha_san_xuat = nsx.id
+    OUTER APPLY (
+        SELECT TOP 1 ct.id, ct.gia_ban, ct.id_anh_san_pham
+        FROM chi_tiet_san_pham ct
+        WHERE ct.id_san_pham = sp.id AND ct.deleted = 0
+        ORDER BY ct.created_at DESC
+    ) ctsp
+    LEFT JOIN anh_san_pham asp ON ctsp.id_anh_san_pham = asp.id
+    LEFT JOIN chi_tiet_dot_giam_gia ctdgg ON ctdgg.id_chi_tiet_san_pham = ctsp.id AND ctdgg.deleted = 0
+    LEFT JOIN (
+        SELECT hdct.id_chi_tiet_san_pham, COUNT(*) AS so_luong_ban
+        FROM hoa_don_chi_tiet hdct
+        JOIN hoa_don hd ON hdct.id_hoa_don = hd.id
+        WHERE hd.trang_thai = 1 AND hd.deleted = 0
+        GROUP BY hdct.id_chi_tiet_san_pham
+    ) sales ON sales.id_chi_tiet_san_pham = ctsp.id
+    LEFT JOIN dot_giam_gia dgg ON ctdgg.id_dot_giam_gia = dgg.id
+    WHERE EXISTS (
+        SELECT 1
+        FROM chi_tiet_san_pham ct
+        WHERE ct.id_san_pham = sp.id AND ct.deleted = 0
+    )
+    ORDER BY 
+        CASE WHEN :sortBy = 'SALES' THEN COALESCE(sales.so_luong_ban, 0) ELSE 0 END DESC,
+        CASE WHEN :sortBy = 'DISCOUNT' THEN CASE WHEN ctdgg.id IS NOT NULL THEN 1 ELSE 0 END ELSE 0 END DESC,
+        CASE WHEN :sortBy NOT IN ('SALES', 'DISCOUNT') THEN sp.created_at END DESC,
+        sp.created_at DESC
+    """, nativeQuery = true)
     List<Object[]> showBestProduct(@Param("sortBy") String sortBy);
 
     @Query(

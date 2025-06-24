@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, Integer> {
@@ -85,4 +86,5 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
 
     @Query("SELECT DISTINCT ctsp.idMauSac.mauSac FROM ChiTietSanPham ctsp WHERE ctsp.deleted = false")
     List<String> findDistinctColors();
+
 }
