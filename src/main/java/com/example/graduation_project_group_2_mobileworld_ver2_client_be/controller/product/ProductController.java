@@ -55,12 +55,34 @@ public class ProductController {
             variant.put("mau_sac", record[13]);
             variant.put("ram_dung_luong", record[14]);
             variant.put("bo_nho_trong_dung_luong", record[15]);
-            variant.put("anh_san_pham_url", record[16] != null ? record[16] : "/assets/images/placeholder.jpg"); // asp.duong_dan
+            variant.put("anh_san_pham_url", record[16] != null ? record[16] : "/assets/images/placeholder.jpg");
             variant.put("ghi_chu", record[17] != null ? record[17] : "Không có mô tả chi tiết.");
+            variant.put("gia_sau_khi_giam", record[18] != null ? record[18] : record[10] != null ? record[10] : 0);
+            variant.put("gia_ban_dau", record[19] != null ? record[19] : record[10] != null ? record[10] : 0);
+            variant.put("has_discount", record[20] != null && ((Number) record[20]).intValue() == 1);
+            variant.put("giam_phan_tram", record[21] != null ? record[21] : 0);
+            variant.put("giam_toi_da", record[22] != null ? record[22] : 0);
+            variant.put("loai_giam_gia_ap_dung", record[23] != null ? record[23] : "NONE");
+            variant.put("chi_so_khang_bui_nuoc", record[24] != null ? record[24] : "Không có thông tin");
+            variant.put("ten_cong_nghe_mang", record[25] != null ? record[25] : "Không có thông tin");
+            variant.put("he_dieu_hanh", record[26] != null ? record[26] : "Không có thông tin");
+            variant.put("phien_ban", record[27] != null ? record[27] : "Không có thông tin");
+            variant.put("ho_tro_bo_nho_ngoai", record[28] != null ? record[28] : "Không có thông tin");
+            variant.put("dung_luong_pin", record[29] != null ? record[29] : "Không có thông tin");
+            variant.put("cac_loai_sim_ho_tro", record[30] != null ? record[30] : "Không có thông tin");
+            variant.put("chat_lieu_khung", record[31] != null ? record[31] : "Không có thông tin");
+            variant.put("chat_lieu_mat_lung", record[32] != null ? record[32] : "Không có thông tin");
+            variant.put("cong_nghe_ho_tro", record[33] != null ? record[33] : "Không có thông tin");
+            variant.put("ten_cong_nghe_man_hinh", record[34] != null ? record[34] : "Không có thông tin");
+            variant.put("chuan_man_hinh", record[35] != null ? record[35] : "Không có thông tin");
+            variant.put("kich_thuoc", record[36] != null ? record[36] : "Không có thông tin");
+            variant.put("do_phan_giai", record[37] != null ? record[37] : "Không có thông tin");
+            variant.put("do_sang_toi_da", record[38] != null ? record[38] : "Không có thông tin");
+            variant.put("tan_so_quet", record[39] != null ? record[39] : "Không có thông tin");
+            variant.put("kieu_man_hinh", record[40] != null ? record[40] : "Không có thông tin");
             return variant;
         }).collect(Collectors.toList());
     }
-
     // Get suggested products (top 6)
     @GetMapping("/suggested-products")
     public List<Map<String, Object>> getSuggestedProducts() {
@@ -144,7 +166,7 @@ public class ProductController {
             @RequestParam(defaultValue = "0") double minPrice,
             @RequestParam(defaultValue = "0") double maxPrice) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Object[]> productPage = sanPhamService.showAllProduct(pageable, sortBy,useCases, colors, brands, minPrice, maxPrice);
+        Page<Object[]> productPage = sanPhamService.showAllProduct(pageable, sortBy, useCases, colors, brands, minPrice, maxPrice);
 
         List<Map<String, Object>> products = productPage.getContent().stream().map(record -> {
             Map<String, Object> product = new HashMap<>();
@@ -152,9 +174,14 @@ public class ProductController {
             product.put("tenSanPham", record[1]);
             product.put("createdAt", record[2]);
             product.put("tenNhaSanXuat", record[3]);
-            product.put("giaBan", record[4] != null ? record[4] : 0);
-            product.put("imageUrl", record[5] != null ? record[5] : "/assets/images/placeholder.jpg");
-            product.put("mauSacList", record[6] != null ? Arrays.asList(((String) record[6]).split(",")) : Collections.emptyList());
+            product.put("giaBan", record[4] != null ? record[4] : 0); // Giá gốc
+            product.put("giaSauKhiGiam", record[5] != null ? record[5] : record[4] != null ? record[4] : 0); // Giá sau giảm
+            product.put("imageUrl", record[6] != null ? record[6] : "/assets/images/placeholder.jpg");
+            product.put("mauSacList", record[7] != null ? Arrays.asList(((String) record[7]).split(",")) : Collections.emptyList());
+            product.put("hasDiscount", record[8] != null && ((Number) record[8]).intValue() == 1);
+            product.put("giamPhanTram", record[9] != null ? record[9] : 0);
+            product.put("giamToiDa", record[10] != null ? record[10] : 0);
+            product.put("loaiGiamGiaApDung", record[11] != null ? record[11] : "NONE");
             return product;
         }).collect(Collectors.toList());
 

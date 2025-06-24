@@ -213,6 +213,7 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
         sp.created_at AS createdAt,
         nsx.id AS tenNhaSanXuat,
         ctsp.gia_ban AS giaBan,
+        COALESCE(ctdgg.gia_sau_khi_giam, ctsp.gia_ban) AS giaSauKhiGiam,
         COALESCE(asp.duong_dan, '/assets/images/placeholder.jpg') AS imageUrl,
         (
             SELECT STRING_AGG(ms2.mau_sac, ',')
@@ -222,7 +223,11 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
                 WHERE ct2.id_san_pham = sp.id AND ct2.deleted = 0
             ) distinct_colors
             LEFT JOIN mau_sac ms2 ON distinct_colors.id_mau_sac = ms2.id
-        ) AS mauSacList
+        ) AS mauSacList,
+        CASE WHEN ctdgg.id IS NOT NULL THEN 1 ELSE 0 END AS hasDiscount,
+        dgg.gia_tri_giam_gia AS giamPhanTram,
+        dgg.so_tien_giam_toi_da AS giamToiDa,
+        COALESCE(dgg.loai_giam_gia_ap_dung, 'NONE') AS loaiGiamGiaApDung
     FROM 
         san_pham sp
     LEFT JOIN nha_san_xuat nsx ON sp.id_nha_san_xuat = nsx.id        
@@ -259,6 +264,8 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
         ORDER BY ct.created_at DESC
     ) ctsp
     LEFT JOIN anh_san_pham asp ON ctsp.id_anh_san_pham = asp.id
+    LEFT JOIN chi_tiet_dot_giam_gia ctdgg ON ctdgg.id_chi_tiet_san_pham = ctsp.id AND ctdgg.deleted = 0
+    LEFT JOIN dot_giam_gia dgg ON ctdgg.id_dot_giam_gia = dgg.id
     WHERE EXISTS (
         SELECT 1
         FROM chi_tiet_san_pham ct
@@ -272,7 +279,12 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
         sp.created_at,
         nsx.id,
         ctsp.gia_ban,
-        asp.duong_dan
+        asp.duong_dan,
+        ctdgg.id,
+        ctdgg.gia_sau_khi_giam,
+        dgg.gia_tri_giam_gia,
+        dgg.so_tien_giam_toi_da,
+        dgg.loai_giam_gia_ap_dung
     ORDER BY
         CASE 
             WHEN :sortBy = 'popularity' THEN sp.created_at
