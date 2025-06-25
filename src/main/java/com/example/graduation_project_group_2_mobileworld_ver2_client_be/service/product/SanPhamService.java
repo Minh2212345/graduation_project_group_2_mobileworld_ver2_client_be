@@ -43,4 +43,12 @@ public class SanPhamService {
     public Page<Object[]> showAllProduct(Pageable pageable,  String sortBy,String useCases, String colors, String brands, double minPrice, double maxPrice) {
         return sanPhamRepository.showAllProduct(pageable, sortBy,useCases, colors, brands, minPrice, maxPrice);
     }
+
+    public List<Object[]> getProductForCompare() {
+        return sanPhamRepository.getProductForCompare();
+    }
+
+    public Optional<SanPham> findSanPhamWithDetailsById(Integer id) {
+        return sanPhamRepository.findSanPhamWithDetailsById(id);
+    }
 }

@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 
 @Getter
 @Setter
@@ -107,4 +108,6 @@ public class SanPham {
     @JoinColumn(name = "cong_nghe_man_hinh_id")
     private CongNgheManHinh congNgheManHinh;
 
+    @OneToMany(mappedBy = "idSanPham")
+    private Collection<ChiTietSanPham> chiTietSanPhams;
 }

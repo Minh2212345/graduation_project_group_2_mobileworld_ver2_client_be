@@ -211,4 +211,52 @@ public class ProductController {
         response.put("colors", colors);
         return response;
     }
+
+    // New endpoint for fetching products for comparison (combobox)
+
+    // New endpoint for fetching products for comparison (combobox)
+    @GetMapping("/products/compare")
+    public List<Map<String, Object>> getProductsForCompare() {
+        List<Object[]> results = sanPhamService.getProductForCompare();
+        return results.stream().map(record -> {
+            Map<String, Object> product = new HashMap<>();
+            product.put("id", record[0]); // sp.id
+            product.put("tenSanPham", record[1]); // sp.ten_san_pham
+            return product;
+        }).collect(Collectors.toList());
+    }
+
+    // New endpoint for fetching detailed product information
+
+    @GetMapping("/products/details/{id}")
+    public Map<String, Object> getProductDetails(@PathVariable Integer id) {
+        Map<String, Object> product = new HashMap<>();
+        sanPhamService.findSanPhamWithDetailsById(id).ifPresent(sanPham -> {
+            product.put("tenSanPham", sanPham.getTenSanPham() != null ? sanPham.getTenSanPham() : "Không có thông tin");
+            ChiTietSanPham chiTiet = sanPham.getChiTietSanPhams().stream().findFirst().orElse(null);
+            product.put("anhSanPhamUrl", chiTiet != null && chiTiet.getIdAnhSanPham() != null ? chiTiet.getIdAnhSanPham().getDuongDan() : "/assets/images/placeholder.jpg");
+            product.put("giaBan", chiTiet != null ? chiTiet.getGiaBan() : 0.0);
+            product.put("ram", chiTiet != null && chiTiet.getIdRam() != null ? chiTiet.getIdRam().getDungLuongRam() : "Không có thông tin");
+            product.put("storage", chiTiet != null && chiTiet.getIdBoNhoTrong() != null ? chiTiet.getIdBoNhoTrong().getDungLuongBoNhoTrong() : "Không có thông tin");
+            product.put("battery", sanPham.getIdPin() != null ? sanPham.getIdPin().getDungLuongPin() : "Không có thông tin");
+            product.put("waterResistance", sanPham.getIdChiSoKhangBuiVaNuoc() != null ? sanPham.getIdChiSoKhangBuiVaNuoc().getTenChiSo() : "Không có thông tin");
+            product.put("networkTech", sanPham.getIdCongNgheMang() != null ? sanPham.getIdCongNgheMang().getTenCongNgheMang() : "Không có thông tin");
+            product.put("os", sanPham.getIdHeDieuHanh() != null ? sanPham.getIdHeDieuHanh().getHeDieuHanh() : "Không có thông tin");
+            product.put("osVersion", sanPham.getIdHeDieuHanh() != null ? sanPham.getIdHeDieuHanh().getPhienBan() : "Không có thông tin");
+            product.put("externalStorage", sanPham.getIdHoTroBoNhoNgoai() != null ? sanPham.getIdHoTroBoNhoNgoai().getHoTroBoNhoNgoai() : "Không có thông tin");
+            product.put("simType", sanPham.getIdSim() != null ? sanPham.getIdSim().getSoLuongSimHoTro() : "Không có thông tin");
+            product.put("frameMaterial", sanPham.getIdThietKe() != null ? sanPham.getIdThietKe().getChatLieuKhung() : "Không có thông tin");
+            product.put("backMaterial", sanPham.getIdThietKe() != null ? sanPham.getIdThietKe().getChatLieuMatLung() : "Không có thông tin");
+            product.put("chargingTech", sanPham.getHoTroCongNgheSac() != null ? sanPham.getHoTroCongNgheSac().getCongNgheHoTro() : "Không có thông tin");
+            product.put("displayTech", sanPham.getCongNgheManHinh() != null ? sanPham.getCongNgheManHinh().getCongNgheManHinh() : "Không có thông tin");
+            product.put("resolution", sanPham.getCongNgheManHinh() != null ? sanPham.getCongNgheManHinh().getChuanManHinh() : "Không có thông tin");
+            product.put("screenSize", sanPham.getCongNgheManHinh() != null ? sanPham.getCongNgheManHinh().getKichThuoc() : "Không có thông tin");
+            product.put("brightnessStandard", sanPham.getCongNgheManHinh() != null ? sanPham.getCongNgheManHinh().getDoPhanGiai() : "Không có thông tin");
+            product.put("brightnessHDR", sanPham.getCongNgheManHinh() != null ? sanPham.getCongNgheManHinh().getDoSangToiDa() : "Không có thông tin");
+            product.put("brightnessOutdoor", sanPham.getCongNgheManHinh() != null ? sanPham.getCongNgheManHinh().getTanSoQuet() : "Không có thông tin");
+            product.put("typeOfScreen", sanPham.getCongNgheManHinh() != null ? sanPham.getCongNgheManHinh().getKieuManHinh() : "Không có thông tin"); // Sửa lỗi đánh máy
+        });
+        return product;
+    }
+
 }
